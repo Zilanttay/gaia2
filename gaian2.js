@@ -1,4 +1,3 @@
-// Подключаем необходимые модули
 const axios = require("axios");
 const fs = require('fs');
 
@@ -16,22 +15,24 @@ const getCurrentMoscowTime = () => {
     return moscowTime.toISOString().replace('T', ' ').substring(0, 19);
 };
 
-// Основная асинхронная функция, запускающая процесс отправки сообщений
+// Основная асинхронная функция
 (async () => {
     try {
         console.log('Goyda Net By [Cryptohomo Industries]\n\n');
 
-        // Чтение списка адресов из файла keyword.txt
+        // Чтение первой фразы из файла keyword.txt
         const addressList = await fs.readFileSync('keyword.txt', 'utf-8');
         const addressListArray = await addressList.split('\n');
+        
+        // Начальное сообщение из файла
+        let messageContent = addressListArray[11] || "Start"; 
 
-        // Цикл по адресам из списка, начиная с 11-го индекса
+        // Цикл отправки сообщений
         for (let index = 11; index < addressListArray.length; index++) {
-            const Wallet = addressListArray[index];
-            console.log("Content Chat: " + Wallet + "\n");
+            console.log("Content Chat: " + messageContent + "\n");
 
             try {
-                // Отправка запроса к API с текущим адресом из списка
+                // Отправка текущего сообщения
                 const response = await axios.post(
                     'https://NodeIdGaiaMu.us.gaianet.network/v1/chat/completions',
                     {
@@ -42,7 +43,7 @@ const getCurrentMoscowTime = () => {
                             },
                             {
                                 'role': 'user',
-                                'content': Wallet  // Используем текущее значение Wallet
+                                'content': messageContent
                             }
                         ]
                     },
@@ -54,12 +55,15 @@ const getCurrentMoscowTime = () => {
                     }
                 );
 
-                // Логирование ответа от API
+                // Получаем ответ от бота
                 const botResponse = response.data.choices[0].message.content;
                 console.log("Response: [" + botResponse + "]\n");
-
+                
                 // Логирование времени отправки сообщения
                 console.log("Last message sent at (MSK, UTC+3): " + getCurrentMoscowTime() + "\n");
+
+                // Обновляем messageContent для следующего цикла
+                messageContent = botResponse;
 
                 console.log("Wait random time \n\n");
 
